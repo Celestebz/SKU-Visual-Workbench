@@ -2,6 +2,8 @@
 
 Label: `ready-for-agent`
 
+Status: implemented
+
 ## Parent
 
 `.scratch/frontend-workbench/prd.md`
@@ -14,13 +16,13 @@ Use `.scratch/frontend-workbench/interface-contract.md` for endpoint shapes and 
 
 ## Acceptance criteria
 
-- [ ] A local API service can be started from an npm script.
-- [ ] The service exposes a health endpoint.
-- [ ] The service exposes an auth-status endpoint that reports whether `bl auth` is configured.
-- [ ] API errors follow the shared error shape.
-- [ ] When unauthenticated, the response includes actionable setup steps: install/verify `bl`, run `bl auth login`, paste the user's Bailian API key, and verify with `bl auth status`.
-- [ ] No API key is accepted by or returned from the API.
-- [ ] README documents the new local service and new-computer setup flow.
+- [x] A local API service can be started from an npm script.
+- [x] The service exposes a health endpoint.
+- [x] The service exposes an auth-status endpoint that reports whether `bl auth` is configured.
+- [x] API errors follow the shared error shape.
+- [x] When unauthenticated, the response includes actionable setup steps: install/verify `bl`, run `bl auth login`, paste the user's Bailian API key, and verify with `bl auth status`.
+- [x] No API key is accepted by or returned from the API.
+- [x] README documents the new local service and new-computer setup flow.
 
 ## Blocked by
 

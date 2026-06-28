@@ -7,13 +7,15 @@
     "social-visual-pack": "./scripts/social-visual-pack.mjs"
   },
   "exports": {
-    "./workflow": "./src/workflow.mjs"
+    "./workflow": "./src/workflow.mjs",
+    "./server": "./src/server.mjs"
   },
   "scripts": {
+    "api": "node scripts/server.mjs",
     "social": "node scripts/social-visual-pack.mjs",
     "demo": "node scripts/social-visual-pack.mjs --mock \"帮我为一款夏季香氛产品生成 Instagram 和 Facebook 宣传图，风格高级清爽，目标用户是欧美年轻女性。\"",
     "samples": "node scripts/run-samples.mjs",
-    "check": "node --check scripts/social-visual-pack.mjs && node --check scripts/run-samples.mjs && node --check src/workflow.mjs"
+    "check": "node --check scripts/social-visual-pack.mjs && node --check scripts/run-samples.mjs && node --check scripts/server.mjs && node --check src/workflow.mjs && node --check src/server.mjs"
   },
   "engines": {
     "node": ">=22.12"

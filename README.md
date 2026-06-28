@@ -10,6 +10,30 @@
 bl auth status
 ```
 
+启动本地 API 服务：
+
+```bash
+npm run api
+```
+
+服务默认运行在：
+
+```text
+http://127.0.0.1:4173/api
+```
+
+检查服务是否启动：
+
+```bash
+curl http://127.0.0.1:4173/api/health
+```
+
+检查百炼登录状态：
+
+```bash
+curl http://127.0.0.1:4173/api/auth/status
+```
+
 生成真实发布包：
 
 ```bash
@@ -74,6 +98,25 @@ const result = await runWorkflow(options);
 ```
 
 `scripts/social-visual-pack.mjs` 仍然可以直接作为命令行使用；被 `import` 时不会自动执行。
+
+## 换电脑配置百炼
+
+GitHub 仓库不会保存任何 API Key。换电脑后，在新电脑单独配置百炼 CLI：
+
+```bash
+bl --version
+bl auth login
+bl auth status
+```
+
+如果本地 API 返回未登录，前端会显示同样的引导：
+
+1. 安装或确认百炼 CLI 可用：`bl --version`
+2. 登录：`bl auth login`
+3. 按提示粘贴你自己的百炼 API Key
+4. 验证：`bl auth status`
+
+本项目不会在前端、仓库配置或本地项目历史里保存完整密钥。
 
 ## Workshop 演示话术
 
