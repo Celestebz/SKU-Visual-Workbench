@@ -5,7 +5,9 @@ const authGuidance = document.querySelector("#auth-guidance");
 const projectForm = document.querySelector("#project-form");
 const projectMessage = document.querySelector("#project-message");
 const projectList = document.querySelector("#project-list");
-const activeProjectIds = new Set();
+const assetList = document.querySelector("#asset-list");
+const planPromptsButton = document.querySelector("#plan-prompts");
+let activeProject = null;
 
 async function loadAuthStatus() {
   try {
@@ -67,6 +69,33 @@ function escapeHtml(value) {
 loadAuthStatus();
 loadProjects();
 
+planPromptsButton.addEventListener("click", async () => {
+  if (!activeProject) return;
+  projectMessage.textContent = "Generating prompt plan...";
+
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(activeProject.id)}/plan-prompts`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        assetTypes: ["main", "lifestyle", "selling-point", "ad-test"],
+        variant: "instagram-portrait",
+        mock: true
+      })
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Prompt planning failed.");
+
+    activeProject.brief = body.brief;
+    activeProject.assets = body.assets;
+    renderAssets(activeProject.assets);
+    projectMessage.textContent = "Prompt plan generated. Edit layers, then save changes.";
+    await loadProjects(activeProject.id);
+  } catch (error) {
+    projectMessage.textContent = error.message;
+  }
+});
+
 projectForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   projectMessage.textContent = "Saving project...";
@@ -115,7 +144,6 @@ async function loadProjects(activeProjectId = null) {
 }
 
 function renderProjects(projects, activeProjectId) {
-  activeProjectIds.clear();
   if (!projects.length) {
     projectList.innerHTML = `<p class="empty-state">No local projects yet. Save this SKU to start history.</p>`;
     return;
@@ -143,7 +171,10 @@ async function loadProject(projectId) {
     const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`);
     const body = await response.json();
     if (!response.ok) throw new Error(body.error?.message || "Could not open project.");
+    activeProject = body.project;
     fillProjectForm(body.project);
+    renderAssets(body.project.assets || []);
+    planPromptsButton.disabled = false;
     projectMessage.textContent = `Opened ${body.project.name}.`;
     await loadProjects(projectId);
   } catch (error) {
@@ -174,4 +205,123 @@ function formatDate(value) {
     hour: "2-digit",
     minute: "2-digit"
   }).format(new Date(value));
+}
+
+function renderAssets(assets) {
+  if (!assets.length) {
+    assetList.innerHTML = `
+      <article class="asset-card">
+        <span>Prompt plan</span>
+        <h3>No generated prompt plan yet</h3>
+        <p>Save or open a project, then generate the Instagram SKU prompt plan.</p>
+      </article>
+    `;
+    return;
+  }
+
+  assetList.innerHTML = assets.map(renderAssetCard).join("");
+  assetList.querySelectorAll("[data-save-asset]").forEach((button) => {
+    button.addEventListener("click", () => saveAssetLayers(button.dataset.saveAsset));
+  });
+  assetList.querySelectorAll("[data-layer-input]").forEach((field) => {
+    field.addEventListener("input", () => updatePromptPreview(field.closest(".asset-card")));
+  });
+}
+
+function renderAssetCard(asset) {
+  return `
+    <article class="asset-card" data-asset-id="${escapeHtml(asset.id)}">
+      <span>${escapeHtml(asset.assetType)}</span>
+      <h3>${escapeHtml(asset.label)}</h3>
+      <p>${escapeHtml(asset.size)} · ${escapeHtml(asset.variant)}</p>
+      <div class="layer-grid">
+        ${renderLayerField(asset, "task", "Task layer")}
+        ${renderLayerField(asset, "fact", "Fact layer")}
+        ${renderLayerField(asset, "scene", "Scene layer")}
+        ${renderLayerField(asset, "style", "Style layer")}
+        ${renderLayerField(asset, "conversion", "Conversion layer")}
+        ${renderNegativeField(asset)}
+      </div>
+      <label class="prompt-preview">
+        Final prompt
+        <textarea data-prompt readonly rows="6">${escapeHtml(composePrompt(asset))}</textarea>
+      </label>
+      <button class="secondary-button" data-save-asset="${escapeHtml(asset.id)}" type="button">Save prompt layers</button>
+    </article>
+  `;
+}
+
+function renderLayerField(asset, key, label) {
+  return `
+    <label>
+      ${label}
+      <textarea data-layer-input="${key}" rows="4">${escapeHtml(asset.layers?.[key] || "")}</textarea>
+    </label>
+  `;
+}
+
+function renderNegativeField(asset) {
+  return `
+    <label>
+      Negative prompt
+      <textarea data-negative-prompt rows="4">${escapeHtml(asset.negativePrompt || "")}</textarea>
+    </label>
+  `;
+}
+
+function composePrompt(asset) {
+  const layers = asset.layers || {};
+  return [
+    `TASK LAYER: ${layers.task || ""}`,
+    `FACT LAYER: ${layers.fact || ""}`,
+    `SCENE LAYER: ${layers.scene || ""}`,
+    `STYLE LAYER: ${layers.style || ""}`,
+    `CONVERSION LAYER: ${layers.conversion || ""}`
+  ].join("\\n\\n");
+}
+
+function updatePromptPreview(card) {
+  const asset = readAssetCard(card);
+  card.querySelector("[data-prompt]").value = composePrompt(asset);
+}
+
+async function saveAssetLayers(assetId) {
+  if (!activeProject) return;
+  const card = assetList.querySelector(`[data-asset-id="${cssEscape(assetId)}"]`);
+  const asset = readAssetCard(card);
+  projectMessage.textContent = "Saving prompt layers...";
+
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(activeProject.id)}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ assets: [asset] })
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Could not save prompt layers.");
+
+    projectMessage.textContent = "Prompt layers saved.";
+    await loadProject(activeProject.id);
+  } catch (error) {
+    projectMessage.textContent = error.message;
+  }
+}
+
+function readAssetCard(card) {
+  const layers = {};
+  card.querySelectorAll("[data-layer-input]").forEach((field) => {
+    layers[field.dataset.layerInput] = field.value;
+  });
+
+  return {
+    id: card.dataset.assetId,
+    layers,
+    prompt: card.querySelector("[data-prompt]").value,
+    negativePrompt: card.querySelector("[data-negative-prompt]").value
+  };
+}
+
+function cssEscape(value) {
+  if (window.CSS?.escape) return window.CSS.escape(value);
+  return String(value).replaceAll('"', '\\"');
 }

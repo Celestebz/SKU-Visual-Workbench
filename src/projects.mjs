@@ -150,6 +150,16 @@ export async function updateProject(projectId, patch) {
   return project;
 }
 
+export async function savePromptPlan(projectId, { brief, assets }) {
+  const project = await readProject(projectId);
+  project.brief = brief;
+  project.assets = assets;
+  project.status = "planned";
+  project.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return project;
+}
+
 export function mergeAssets(existing, patches) {
   const byId = new Map(existing.map((asset) => [asset.id, asset]));
   for (const patch of patches) {
@@ -157,6 +167,8 @@ export function mergeAssets(existing, patches) {
     byId.set(patch.id, {
       ...current,
       ...patch,
+      prompt: patch.prompt ?? current.prompt,
+      negativePrompt: patch.negativePrompt ?? current.negativePrompt,
       layers: {
         ...(current.layers || {}),
         ...(patch.layers || {})

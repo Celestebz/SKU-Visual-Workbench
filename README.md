@@ -42,6 +42,9 @@ curl http://127.0.0.1:4173/api/auth/status
 - 点击 `Save local project`
 - 项目会保存到本机 `projects/` 目录
 - 右侧 `Local project history` 可以重新打开历史项目
+- 点击 `Generate prompt plan` 可以生成 Instagram 4 类素材提示词
+- 中间区域可以编辑任务层、事实层、画面层、风格层、转化层和负面提示词
+- 点击 `Save prompt layers` 会把编辑后的提示词保存回本地项目
 
 `projects/` 已加入 `.gitignore`，不会上传到 GitHub。
 

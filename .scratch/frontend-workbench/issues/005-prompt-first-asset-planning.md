@@ -2,6 +2,8 @@
 
 Label: `ready-for-agent`
 
+Status: implemented
+
 ## Parent
 
 `.scratch/frontend-workbench/prd.md`
@@ -14,14 +16,14 @@ Use `.scratch/frontend-workbench/interface-contract.md` for asset IDs, layer nam
 
 ## Acceptance criteria
 
-- [ ] The user can trigger prompt planning without generating images.
-- [ ] The workflow creates four Instagram asset cards: main, lifestyle, selling-point, and ad-test.
-- [ ] Each asset card shows task layer, fact layer, scene layer, style layer, conversion layer, final prompt, and negative prompt.
-- [ ] Layer field names match the shared contract: `task`, `fact`, `scene`, `style`, and `conversion`.
-- [ ] Each structured prompt layer is editable in the UI.
-- [ ] Saving the project persists edited prompt layers.
-- [ ] The final prompt updates from the edited layers or clearly shows what will be sent to image generation.
-- [ ] The flow works in mock mode for development without spending quota.
+- [x] The user can trigger prompt planning without generating images.
+- [x] The workflow creates four Instagram asset cards: main, lifestyle, selling-point, and ad-test.
+- [x] Each asset card shows task layer, fact layer, scene layer, style layer, conversion layer, final prompt, and negative prompt.
+- [x] Layer field names match the shared contract: `task`, `fact`, `scene`, `style`, and `conversion`.
+- [x] Each structured prompt layer is editable in the UI.
+- [x] Saving the project persists edited prompt layers.
+- [x] The final prompt updates from the edited layers or clearly shows what will be sent to image generation.
+- [x] The flow works in mock mode for development without spending quota.
 
 ## Blocked by
 

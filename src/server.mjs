@@ -6,9 +6,18 @@ import {
   createProject,
   listProjects,
   readProject,
+  savePromptPlan,
   updateProject
 } from "./projects.mjs";
-import { run } from "./workflow.mjs";
+import {
+  ASSET_TYPES,
+  PLATFORM_VARIANTS,
+  generateBrief,
+  generatePrompts,
+  run,
+  selectAssetTypes,
+  selectPlatformVariants
+} from "./workflow.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -122,6 +131,22 @@ export async function routeRequest(req) {
     }
   }
 
+  const planPromptsMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/plan-prompts$/);
+  if (planPromptsMatch && req.method === "POST") {
+    try {
+      const project = await readProject(planPromptsMatch[1]);
+      const body = await readJsonBody(req);
+      const plan = await planProjectPrompts(project, body);
+      await savePromptPlan(project.id, plan);
+      return jsonResponse(200, plan);
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        return jsonResponse(404, createApiError("PROJECT_NOT_FOUND", "Project not found.", "Choose another project or create a new one."));
+      }
+      return jsonResponse(500, createApiError("PROMPT_PLAN_FAILED", "Prompt planning failed.", error.message));
+    }
+  }
+
   if (url.pathname.startsWith("/api/")) {
     return jsonResponse(
       404,
@@ -134,6 +159,75 @@ export async function routeRequest(req) {
   }
 
   return jsonResponse(404, createApiError("NOT_FOUND", `No route for ${req.method} ${url.pathname}`, "Check the path and method."));
+}
+
+export async function planProjectPrompts(project, body = {}) {
+  const variantId = body.variant || "instagram-portrait";
+  const assetTypeIds = Array.isArray(body.assetTypes) && body.assetTypes.length
+    ? body.assetTypes.join(",")
+    : "main,lifestyle,selling-point,ad-test";
+  const mock = body.mock ?? true;
+  const briefText = buildProjectBriefText(project);
+  const options = {
+    brief: briefText,
+    outDir: "",
+    textModel: "qwen-plus",
+    imageModel: "qwen-image-2.0",
+    premiumImageModel: "qwen-image-max",
+    referenceImage: project.input?.referenceImage || "",
+    variants: variantId,
+    assetTypes: assetTypeIds,
+    skuPack: false,
+    usePremium: false,
+    mock,
+    skipImages: true,
+    n: "1",
+    platformVariants: selectPlatformVariants(variantId),
+    assetTypeVariants: selectAssetTypes(assetTypeIds, false)
+  };
+
+  const brief = await generateBrief(options);
+  const prompts = await generatePrompts(options, brief);
+  const assets = prompts.variants.map(promptVariantToAsset);
+
+  return { brief, assets };
+}
+
+export function buildProjectBriefText(project) {
+  const input = project.input || {};
+  return [
+    `Product: ${input.productName}`,
+    `Platform: ${input.platform || "instagram"}`,
+    `Market: ${input.market}`,
+    `Audience: ${input.audience}`,
+    `Visual style: ${input.visualStyle}`,
+    `Notes: ${input.notes}`,
+    "Generate an Instagram 4:5 SKU visual pack with main image, lifestyle scene image, selling point image, and ad test creative."
+  ].filter((line) => !line.endsWith(": ") && !line.endsWith(":")).join("\n");
+}
+
+export function promptVariantToAsset(variant) {
+  return {
+    id: variant.id,
+    assetType: variant.asset_type,
+    variant: resolvePlatformVariantId(variant),
+    label: variant.label,
+    size: variant.size,
+    layers: {
+      task: variant.task_layer || "",
+      fact: variant.fact_layer || "",
+      scene: variant.scene_layer || "",
+      style: variant.style_layer || "",
+      conversion: variant.conversion_layer || ""
+    },
+    prompt: variant.prompt || "",
+    negativePrompt: variant.negative_prompt || "",
+    images: []
+  };
+}
+
+function resolvePlatformVariantId(variant) {
+  return PLATFORM_VARIANTS.find((item) => item.size === variant.size && variant.id?.startsWith(item.id))?.id || "instagram-portrait";
 }
 
 export async function readJsonBody(req) {

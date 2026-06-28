@@ -158,16 +158,33 @@ textarea {
   resize: vertical;
 }
 
-.primary-button {
+.primary-button,
+.secondary-button {
   width: 100%;
   border: 0;
   border-radius: 6px;
-  background: var(--accent);
-  color: var(--accent-ink);
   cursor: pointer;
   font: inherit;
   font-weight: 700;
   padding: 11px 12px;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.secondary-button {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+  color: var(--ink);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .hint {
@@ -177,7 +194,7 @@ textarea {
 
 .asset-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -198,6 +215,27 @@ textarea {
 .asset-card p {
   margin-bottom: 0;
   font-size: 14px;
+}
+
+.asset-card textarea {
+  min-height: 72px;
+  font-size: 13px;
+}
+
+.asset-card .layer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.asset-card .prompt-preview {
+  margin-top: 12px;
+}
+
+.asset-card .prompt-preview textarea {
+  min-height: 120px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 .asset-card.is-active {
