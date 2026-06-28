@@ -126,6 +126,24 @@
             </div>
           </div>
 
+          <div class="production-actions">
+            <h3>Production actions</h3>
+            <label class="checkbox-row">
+              <input id="mock-images" type="checkbox" />
+              Use mock image generation
+            </label>
+            <button class="secondary-button" id="generate-images" type="button" disabled>Generate selected images</button>
+            <button class="secondary-button" id="generate-copy" type="button" disabled>Generate copy</button>
+            <button class="secondary-button" id="generate-quality" type="button" disabled>Generate quality report</button>
+            <button class="secondary-button" id="export-project" type="button" disabled>Export markdown</button>
+            <p class="hint" id="job-message">Select planned assets before generating images.</p>
+          </div>
+
+          <div class="result-panel" id="result-panel">
+            <h3>Generated outputs</h3>
+            <p class="empty-state">Copy, quality notes, and export links will appear here.</p>
+          </div>
+
           <div class="safety-note">
             <h3>GitHub-safe by design</h3>
             <p>This app uses local <code>bl auth</code>. It does not ask for, store, or commit your full API Key.</p>

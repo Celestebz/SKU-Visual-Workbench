@@ -1,6 +1,8 @@
 # Issue 007: Generate Copy, Quality Report, and Exportable Markdown
 
-Label: `ready-for-agent`
+Label: `ready-for-human`
+
+Status: implemented
 
 ## Parent
 
@@ -14,12 +16,12 @@ Use `.scratch/frontend-workbench/interface-contract.md` for copy, quality report
 
 ## Acceptance criteria
 
-- [ ] The user can generate social copy for the current SKU project.
-- [ ] The user can generate a quality report that scores asset readiness and gives retry guidance.
-- [ ] The quality report references the asset types and adopted/generated images where available.
-- [ ] The app displays caption, hashtags, alt text, publishing tips, and quality notes in the workbench.
-- [ ] The project can export markdown equivalent to `showcase.md`, `social-copy.md`, `quality-report.md`, and `prompts.md`.
-- [ ] Exported files are saved predictably under the project output directory.
+- [x] The user can generate social copy for the current SKU project.
+- [x] The user can generate a quality report that scores asset readiness and gives retry guidance.
+- [x] The quality report references the asset types and adopted/generated images where available.
+- [x] The app displays caption, hashtags, alt text, publishing tips, and quality notes in the workbench.
+- [x] The project can export markdown equivalent to `showcase.md`, `social-copy.md`, `quality-report.md`, and `prompts.md`.
+- [x] Exported files are saved predictably under the project output directory.
 
 ## Blocked by
 

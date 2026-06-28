@@ -160,6 +160,67 @@ export async function savePromptPlan(projectId, { brief, assets }) {
   return project;
 }
 
+export async function appendGeneratedImages(projectId, generatedGroups) {
+  const project = await readProject(projectId);
+  const now = new Date().toISOString();
+  const byId = new Map((project.assets || []).map((asset) => [asset.id, asset]));
+
+  for (const group of generatedGroups) {
+    const asset = byId.get(group.id);
+    if (!asset) continue;
+    const existing = asset.images || [];
+    const additions = (group.files || []).map((file) => ({
+      file: file.startsWith("images/") ? file : `images/${file}`,
+      createdAt: now,
+      adopted: false
+    }));
+    asset.images = [...existing, ...additions];
+  }
+
+  project.assets = [...byId.values()];
+  project.updatedAt = now;
+  await saveProject(project);
+  return project;
+}
+
+export async function adoptImage(projectId, assetId, file) {
+  const project = await readProject(projectId);
+  const asset = project.assets?.find((item) => item.id === assetId);
+  if (!asset) throw new Error("Asset not found");
+
+  asset.images = (asset.images || []).map((image) => ({
+    ...image,
+    adopted: image.file === file
+  }));
+  project.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return { assetId, adoptedImage: file };
+}
+
+export async function saveCopy(projectId, copy) {
+  const project = await readProject(projectId);
+  project.copy = copy;
+  project.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return project;
+}
+
+export async function saveQuality(projectId, quality) {
+  const project = await readProject(projectId);
+  project.quality = quality;
+  project.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return project;
+}
+
+export async function saveExports(projectId, exports) {
+  const project = await readProject(projectId);
+  project.exports = exports;
+  project.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return project;
+}
+
 export function mergeAssets(existing, patches) {
   const byId = new Map(existing.map((asset) => [asset.id, asset]));
   for (const patch of patches) {

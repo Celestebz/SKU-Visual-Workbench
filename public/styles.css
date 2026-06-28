@@ -245,14 +245,18 @@ textarea {
 
 .auth-guidance,
 .safety-note,
-.project-history {
+.project-history,
+.production-actions,
+.result-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 14px;
 }
 
 .auth-guidance,
-.project-history {
+.project-history,
+.production-actions,
+.result-panel {
   margin-bottom: 14px;
 }
 
@@ -302,6 +306,67 @@ code {
 .project-button.is-active {
   border-color: #8ebbad;
   box-shadow: inset 0 0 0 1px #8ebbad;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.checkbox-row input {
+  width: auto;
+  margin: 0;
+}
+
+.asset-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.image-card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.image-card img {
+  display: block;
+  width: 100%;
+  border-radius: 4px;
+  background: #edf2ee;
+}
+
+.image-card button {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  padding: 7px;
+}
+
+.image-card.is-adopted {
+  border-color: #8ebbad;
+  box-shadow: inset 0 0 0 1px #8ebbad;
+}
+
+.result-panel ul {
+  margin-top: 0;
+  padding-left: 18px;
 }
 
 .empty-state {

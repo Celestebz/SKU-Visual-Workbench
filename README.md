@@ -45,6 +45,10 @@ curl http://127.0.0.1:4173/api/auth/status
 - 点击 `Generate prompt plan` 可以生成 Instagram 4 类素材提示词
 - 中间区域可以编辑任务层、事实层、画面层、风格层、转化层和负面提示词
 - 点击 `Save prompt layers` 会把编辑后的提示词保存回本地项目
+- 勾选素材卡片后点击 `Generate selected images`，会只为选中的素材调用百炼出图
+- 图片会显示在对应素材卡片下方，可以点击 `Mark adopted` 标记采用图
+- 右侧可以继续生成 Instagram caption、hashtags、alt text、发布建议和质检报告
+- 点击 `Export markdown` 会在项目目录下生成 `prompts.md`、`social-copy.md`、`quality-report.md` 和 `showcase.md`
 
 `projects/` 已加入 `.gitignore`，不会上传到 GitHub。
 

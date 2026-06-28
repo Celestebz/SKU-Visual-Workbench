@@ -7,6 +7,13 @@ const projectMessage = document.querySelector("#project-message");
 const projectList = document.querySelector("#project-list");
 const assetList = document.querySelector("#asset-list");
 const planPromptsButton = document.querySelector("#plan-prompts");
+const generateImagesButton = document.querySelector("#generate-images");
+const generateCopyButton = document.querySelector("#generate-copy");
+const generateQualityButton = document.querySelector("#generate-quality");
+const exportProjectButton = document.querySelector("#export-project");
+const mockImagesCheckbox = document.querySelector("#mock-images");
+const jobMessage = document.querySelector("#job-message");
+const resultPanel = document.querySelector("#result-panel");
 let activeProject = null;
 
 async function loadAuthStatus() {
@@ -96,6 +103,11 @@ planPromptsButton.addEventListener("click", async () => {
   }
 });
 
+generateImagesButton.addEventListener("click", generateSelectedImages);
+generateCopyButton.addEventListener("click", generateCopy);
+generateQualityButton.addEventListener("click", generateQualityReport);
+exportProjectButton.addEventListener("click", exportProject);
+
 projectForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   projectMessage.textContent = "Saving project...";
@@ -174,6 +186,8 @@ async function loadProject(projectId) {
     activeProject = body.project;
     fillProjectForm(body.project);
     renderAssets(body.project.assets || []);
+    renderGeneratedOutputs(body.project);
+    updateActionButtons();
     planPromptsButton.disabled = false;
     projectMessage.textContent = `Opened ${body.project.name}.`;
     await loadProjects(projectId);
@@ -226,6 +240,10 @@ function renderAssets(assets) {
   assetList.querySelectorAll("[data-layer-input]").forEach((field) => {
     field.addEventListener("input", () => updatePromptPreview(field.closest(".asset-card")));
   });
+  assetList.querySelectorAll("[data-adopt-image]").forEach((button) => {
+    button.addEventListener("click", () => adoptImage(button.dataset.assetId, button.dataset.adoptImage));
+  });
+  updateActionButtons();
 }
 
 function renderAssetCard(asset) {
@@ -234,6 +252,12 @@ function renderAssetCard(asset) {
       <span>${escapeHtml(asset.assetType)}</span>
       <h3>${escapeHtml(asset.label)}</h3>
       <p>${escapeHtml(asset.size)} · ${escapeHtml(asset.variant)}</p>
+      <div class="asset-tools">
+        <label class="checkbox-row">
+          <input type="checkbox" data-select-asset="${escapeHtml(asset.id)}" />
+          Generate this asset
+        </label>
+      </div>
       <div class="layer-grid">
         ${renderLayerField(asset, "task", "Task layer")}
         ${renderLayerField(asset, "fact", "Fact layer")}
@@ -247,6 +271,7 @@ function renderAssetCard(asset) {
         <textarea data-prompt readonly rows="6">${escapeHtml(composePrompt(asset))}</textarea>
       </label>
       <button class="secondary-button" data-save-asset="${escapeHtml(asset.id)}" type="button">Save prompt layers</button>
+      ${renderImageGallery(asset)}
     </article>
   `;
 }
@@ -266,6 +291,23 @@ function renderNegativeField(asset) {
       Negative prompt
       <textarea data-negative-prompt rows="4">${escapeHtml(asset.negativePrompt || "")}</textarea>
     </label>
+  `;
+}
+
+function renderImageGallery(asset) {
+  const images = asset.images || [];
+  if (!images.length) return `<div class="gallery"><p class="empty-state">No images generated yet.</p></div>`;
+  return `
+    <div class="gallery">
+      ${images.map((image) => `
+        <div class="image-card${image.adopted ? " is-adopted" : ""}">
+          <img src="/api/projects/${encodeURIComponent(activeProject.id)}/files/${encodeURI(image.file)}" alt="${escapeHtml(asset.label)}" />
+          <button type="button" data-asset-id="${escapeHtml(asset.id)}" data-adopt-image="${escapeHtml(image.file)}">
+            ${image.adopted ? "Adopted" : "Mark adopted"}
+          </button>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -305,6 +347,150 @@ async function saveAssetLayers(assetId) {
   } catch (error) {
     projectMessage.textContent = error.message;
   }
+}
+
+async function generateSelectedImages() {
+  if (!activeProject) return;
+  const assetIds = [...assetList.querySelectorAll("[data-select-asset]:checked")].map((item) => item.dataset.selectAsset);
+  if (!assetIds.length) {
+    jobMessage.textContent = "Select at least one asset card first.";
+    return;
+  }
+
+  jobMessage.textContent = "Starting image generation...";
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(activeProject.id)}/generate-images`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ assetIds, n: 1, mock: mockImagesCheckbox.checked })
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Image generation failed to start.");
+    await pollJob(body.jobId);
+    await loadProject(activeProject.id);
+  } catch (error) {
+    jobMessage.textContent = error.message;
+  }
+}
+
+async function pollJob(jobId) {
+  for (;;) {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`);
+    const job = await response.json();
+    if (!response.ok) throw new Error(job.error?.message || "Job status failed.");
+    jobMessage.textContent = `${job.status}: ${job.progress.map((item) => `${item.assetId} ${item.status}`).join(", ")}`;
+    if (job.status === "completed") return job;
+    if (job.status === "failed") throw new Error(job.error?.message || "Image generation failed.");
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+  }
+}
+
+async function adoptImage(assetId, file) {
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(activeProject.id)}/adopt-image`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ assetId, file })
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Could not adopt image.");
+    jobMessage.textContent = `Adopted image for ${body.assetId}.`;
+    await loadProject(activeProject.id);
+  } catch (error) {
+    jobMessage.textContent = error.message;
+  }
+}
+
+async function generateCopy() {
+  await runProjectAction("generate-copy", "Generating copy...", (body) => {
+    activeProject.copy = body.copy;
+    renderGeneratedOutputs(activeProject);
+  });
+}
+
+async function generateQualityReport() {
+  await runProjectAction("quality-report", "Generating quality report...", (body) => {
+    activeProject.quality = body.quality;
+    renderGeneratedOutputs(activeProject);
+  });
+}
+
+async function exportProject() {
+  await runProjectAction("export", "Exporting markdown...", (body) => {
+    activeProject.exports = body.exports;
+    renderGeneratedOutputs(activeProject);
+  });
+}
+
+async function runProjectAction(path, pendingMessage, onSuccess) {
+  if (!activeProject) return;
+  jobMessage.textContent = pendingMessage;
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(activeProject.id)}/${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mock: true })
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || `${path} failed.`);
+    onSuccess(body);
+    jobMessage.textContent = "Done.";
+    await loadProject(activeProject.id);
+  } catch (error) {
+    jobMessage.textContent = error.message;
+  }
+}
+
+function renderGeneratedOutputs(project) {
+  const copy = project.copy;
+  const quality = project.quality;
+  const exports = project.exports || [];
+  resultPanel.innerHTML = `
+    <h3>Generated outputs</h3>
+    ${copy ? `
+      <h4>Copy</h4>
+      <p>${escapeHtml(copy.captions?.[0]?.caption || "")}</p>
+      <p>${escapeHtml((copy.hashtags || []).join(" "))}</p>
+      <h4>Alt text</h4>
+      <p>${escapeHtml(copy.alt_text || "")}</p>
+      ${copy.publishing_tips?.length ? `
+        <h4>Publishing tips</h4>
+        <ul>${copy.publishing_tips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join("")}</ul>
+      ` : ""}
+      ${copy.review_notes?.length ? `
+        <h4>Review notes</h4>
+        <ul>${copy.review_notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>
+      ` : ""}
+    ` : `<p class="empty-state">No copy generated yet.</p>`}
+    ${quality ? `
+      <h4>Quality</h4>
+      <p>Overall score: ${escapeHtml(quality.overall_score)} · Best asset: ${escapeHtml(quality.best_asset_id || "")}</p>
+      ${quality.asset_reviews?.length ? `
+        <ul>
+          ${quality.asset_reviews.map((review) => `
+            <li>
+              <strong>${escapeHtml(review.id)}</strong>: ${escapeHtml(review.publish_readiness)} · ${escapeHtml(review.score)}
+              <br />
+              ${escapeHtml(review.retry_instruction || "")}
+            </li>
+          `).join("")}
+        </ul>
+      ` : ""}
+    ` : ""}
+    ${exports.length ? `
+      <h4>Exports</h4>
+      <ul>${exports.map((file) => `<li><a href="/api/projects/${encodeURIComponent(project.id)}/files/${encodeURI(file)}" target="_blank">${escapeHtml(file)}</a></li>`).join("")}</ul>
+    ` : ""}
+  `;
+}
+
+function updateActionButtons() {
+  const hasProject = Boolean(activeProject);
+  const hasAssets = Boolean(activeProject?.assets?.length);
+  generateImagesButton.disabled = !hasAssets;
+  generateCopyButton.disabled = !hasAssets;
+  generateQualityButton.disabled = !hasAssets;
+  exportProjectButton.disabled = !hasProject;
 }
 
 function readAssetCard(card) {
