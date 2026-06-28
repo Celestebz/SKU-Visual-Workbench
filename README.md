@@ -10,16 +10,16 @@
 bl auth status
 ```
 
-启动本地 API 服务：
+启动本地工作台：
 
 ```bash
-npm run api
+npm run app
 ```
 
-服务默认运行在：
+浏览器打开：
 
 ```text
-http://127.0.0.1:4173/api
+http://127.0.0.1:4173/
 ```
 
 检查服务是否启动：
@@ -33,6 +33,8 @@ curl http://127.0.0.1:4173/api/health
 ```bash
 curl http://127.0.0.1:4173/api/auth/status
 ```
+
+`npm run api` 也可启动同一个本地服务；保留这个别名是为了后续前端/后端调试时语义更清楚。
 
 生成真实发布包：
 
@@ -109,7 +111,7 @@ bl auth login
 bl auth status
 ```
 
-如果本地 API 返回未登录，前端会显示同样的引导：
+如果本地工作台显示未登录，前端会显示同样的引导：
 
 1. 安装或确认百炼 CLI 可用：`bl --version`
 2. 登录：`bl auth login`

@@ -7,7 +7,8 @@ const port = portArgIndex >= 0 ? Number(process.argv[portArgIndex + 1]) : Number
 
 startServer({ port })
   .then(({ host, port: activePort }) => {
-    console.log(`SKU Visual Workbench API running at http://${host}:${activePort}/api`);
+    console.log(`SKU Visual Workbench running at http://${host}:${activePort}/`);
+    console.log(`API running at http://${host}:${activePort}/api`);
     console.log("Health: /api/health");
     console.log("Bailian auth: /api/auth/status");
   })

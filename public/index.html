@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SKU Visual Workbench</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local Instagram SKU Visual Workbench</p>
+          <h1>SKU Visual Workbench</h1>
+        </div>
+        <div class="status-card" id="auth-card" data-state="loading">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="auth-title">Checking Bailian...</strong>
+            <p id="auth-detail">Reading local bl auth status.</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="workbench-grid">
+        <section class="panel input-panel" aria-labelledby="input-title">
+          <div class="panel-header">
+            <p class="eyebrow">Project Input</p>
+            <h2 id="input-title">SKU setup</h2>
+          </div>
+
+          <label>
+            Product name
+            <input type="text" value="MSC12 Elite Electric Guitar" />
+          </label>
+
+          <label>
+            Platform
+            <select>
+              <option>Instagram · 4:5 portrait</option>
+            </select>
+          </label>
+
+          <label>
+            Market
+            <input type="text" value="US / Europe" />
+          </label>
+
+          <label>
+            Audience
+            <textarea rows="3">Beginner electric guitar players who want a stylish, approachable first instrument.</textarea>
+          </label>
+
+          <label>
+            Visual direction
+            <textarea rows="4">Premium, fresh, lifestyle scene, beginner-friendly, not a catalog render.</textarea>
+          </label>
+
+          <button class="primary-button" type="button" disabled>Generate prompt plan</button>
+          <p class="hint">Project creation and prompt planning land in the next slices. This shell is wired to auth status today.</p>
+        </section>
+
+        <section class="panel planner-panel" aria-labelledby="planner-title">
+          <div class="panel-header">
+            <p class="eyebrow">Asset Plan</p>
+            <h2 id="planner-title">Instagram SKU pack</h2>
+          </div>
+
+          <div class="asset-list">
+            <article class="asset-card">
+              <span>Main</span>
+              <h3>Main product image</h3>
+              <p>Clean trust image that makes shape, finish, and hardware immediately readable.</p>
+            </article>
+            <article class="asset-card is-active">
+              <span>Lifestyle</span>
+              <h3>Lifestyle scene image</h3>
+              <p>Bedroom-studio practice moment with beginner cues and natural window light.</p>
+            </article>
+            <article class="asset-card">
+              <span>Selling point</span>
+              <h3>Beginner-friendly proof</h3>
+              <p>Visualize the starter value without turning the image into a text-heavy poster.</p>
+            </article>
+            <article class="asset-card">
+              <span>Ad test</span>
+              <h3>Thumb-stopping creative</h3>
+              <p>A sharper crop for testing feed attention while keeping the product credible.</p>
+            </article>
+          </div>
+        </section>
+
+        <aside class="panel output-panel" aria-labelledby="output-title">
+          <div class="panel-header">
+            <p class="eyebrow">Output</p>
+            <h2 id="output-title">Readiness</h2>
+          </div>
+
+          <div class="auth-guidance" id="auth-guidance">
+            <h3>Preparing setup guidance...</h3>
+            <p>The app will show detailed Bailian setup steps here if this computer is not logged in.</p>
+          </div>
+
+          <div class="safety-note">
+            <h3>GitHub-safe by design</h3>
+            <p>This app uses local <code>bl auth</code>. It does not ask for, store, or commit your full API Key.</p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

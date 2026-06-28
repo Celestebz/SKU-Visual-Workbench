@@ -11,6 +11,7 @@
     "./server": "./src/server.mjs"
   },
   "scripts": {
+    "app": "node scripts/server.mjs",
     "api": "node scripts/server.mjs",
     "social": "node scripts/social-visual-pack.mjs",
     "demo": "node scripts/social-visual-pack.mjs --mock \"帮我为一款夏季香氛产品生成 Instagram 和 Facebook 宣传图，风格高级清爽，目标用户是欧美年轻女性。\"",

@@ -6,6 +6,7 @@ import { run } from "./workflow.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const PUBLIC_DIR = path.join(ROOT, "public");
 
 export const DEFAULT_PORT = 4173;
 
@@ -81,10 +82,11 @@ export async function routeRequest(req) {
     );
   }
 
-  return jsonResponse(
-    404,
-    createApiError("NOT_FOUND", "This local service only exposes /api endpoints.", "Use /api/health to verify the service.")
-  );
+  if (req.method === "GET" || req.method === "HEAD") {
+    return serveStatic(url.pathname);
+  }
+
+  return jsonResponse(404, createApiError("NOT_FOUND", `No route for ${req.method} ${url.pathname}`, "Check the path and method."));
 }
 
 export function jsonResponse(statusCode, body, headers = {}) {
@@ -99,6 +101,49 @@ export function jsonResponse(statusCode, body, headers = {}) {
     },
     body: JSON.stringify(body, null, 2)
   };
+}
+
+export async function serveStatic(pathname) {
+  const filePath = resolvePublicPath(pathname);
+  if (!filePath) {
+    return jsonResponse(404, createApiError("NOT_FOUND", "Static asset not found.", "Open / to load the workbench."));
+  }
+
+  try {
+    const body = await readFile(filePath);
+    return {
+      statusCode: 200,
+      headers: {
+        "content-type": getContentType(filePath)
+      },
+      body
+    };
+  } catch {
+    return jsonResponse(404, createApiError("NOT_FOUND", "Static asset not found.", "Open / to load the workbench."));
+  }
+}
+
+export function resolvePublicPath(pathname) {
+  const routePath = pathname === "/" ? "/index.html" : pathname;
+  const decoded = decodeURIComponent(routePath);
+  const normalized = path.normalize(decoded).replace(/^(\.\.[/\\])+/, "");
+  const filePath = path.join(PUBLIC_DIR, normalized);
+  const relative = path.relative(PUBLIC_DIR, filePath);
+
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
+  return filePath;
+}
+
+export function getContentType(filePath) {
+  const ext = path.extname(filePath);
+  if (ext === ".html") return "text/html; charset=utf-8";
+  if (ext === ".css") return "text/css; charset=utf-8";
+  if (ext === ".js") return "text/javascript; charset=utf-8";
+  if (ext === ".svg") return "image/svg+xml";
+  if (ext === ".png") return "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".webp") return "image/webp";
+  return "application/octet-stream";
 }
 
 export function createServer() {
@@ -124,7 +169,7 @@ export function createServer() {
 
 export function writeResponse(res, response) {
   res.writeHead(response.statusCode, response.headers);
-  res.end(response.statusCode === 204 ? "" : response.body);
+  res.end(response.statusCode === 204 || res.req?.method === "HEAD" ? "" : response.body);
 }
 
 export function startServer({ port = DEFAULT_PORT, host = "127.0.0.1" } = {}) {
