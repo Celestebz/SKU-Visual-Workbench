@@ -2,6 +2,8 @@
 
 Label: `ready-for-agent`
 
+Status: implemented
+
 ## Parent
 
 `.scratch/frontend-workbench/prd.md`
@@ -14,13 +16,13 @@ Use `.scratch/frontend-workbench/interface-contract.md` for the project JSON sha
 
 ## Acceptance criteria
 
-- [ ] The user can create a new project with product name, target market, audience, platform, visual style, and notes.
-- [ ] The user can attach or reference a product image.
-- [ ] The project is saved under a gitignored local project-history directory.
-- [ ] Project persistence follows the documented `project.json` structure.
-- [ ] The frontend shows a history list of saved projects.
-- [ ] Reopening a project restores its product inputs and current workflow state.
-- [ ] Private local outputs and project history are ignored by Git.
+- [x] The user can create a new project with product name, target market, audience, platform, visual style, and notes.
+- [x] The user can attach or reference a product image.
+- [x] The project is saved under a gitignored local project-history directory.
+- [x] Project persistence follows the documented `project.json` structure.
+- [x] The frontend shows a history list of saved projects.
+- [x] Reopening a project restores its product inputs and current workflow state.
+- [x] Private local outputs and project history are ignored by Git.
 
 ## Blocked by
 

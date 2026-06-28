@@ -2,6 +2,10 @@ const authCard = document.querySelector("#auth-card");
 const authTitle = document.querySelector("#auth-title");
 const authDetail = document.querySelector("#auth-detail");
 const authGuidance = document.querySelector("#auth-guidance");
+const projectForm = document.querySelector("#project-form");
+const projectMessage = document.querySelector("#project-message");
+const projectList = document.querySelector("#project-list");
+const activeProjectIds = new Set();
 
 async function loadAuthStatus() {
   try {
@@ -61,3 +65,113 @@ function escapeHtml(value) {
 }
 
 loadAuthStatus();
+loadProjects();
+
+projectForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  projectMessage.textContent = "Saving project...";
+
+  try {
+    const payload = getProjectFormPayload();
+    const response = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Project save failed.");
+
+    projectMessage.textContent = "Project saved locally.";
+    await loadProjects(body.project.id);
+    await loadProject(body.project.id);
+  } catch (error) {
+    projectMessage.textContent = error.message;
+  }
+});
+
+function getProjectFormPayload() {
+  const data = new FormData(projectForm);
+  return {
+    name: data.get("name"),
+    productName: data.get("productName"),
+    platform: "instagram",
+    market: data.get("market"),
+    audience: data.get("audience"),
+    visualStyle: data.get("visualStyle"),
+    notes: data.get("notes"),
+    referenceImagePath: data.get("referenceImagePath")
+  };
+}
+
+async function loadProjects(activeProjectId = null) {
+  try {
+    const response = await fetch("/api/projects");
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Could not load projects.");
+    renderProjects(body.projects, activeProjectId);
+  } catch (error) {
+    projectList.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function renderProjects(projects, activeProjectId) {
+  activeProjectIds.clear();
+  if (!projects.length) {
+    projectList.innerHTML = `<p class="empty-state">No local projects yet. Save this SKU to start history.</p>`;
+    return;
+  }
+
+  projectList.innerHTML = projects
+    .map((project) => {
+      const activeClass = project.id === activeProjectId ? " is-active" : "";
+      return `
+        <button class="project-button${activeClass}" type="button" data-project-id="${escapeHtml(project.id)}">
+          <strong>${escapeHtml(project.name)}</strong>
+          <span>${escapeHtml(project.productName || "Untitled product")} · ${escapeHtml(project.platform)} · ${formatDate(project.updatedAt)}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  projectList.querySelectorAll("[data-project-id]").forEach((button) => {
+    button.addEventListener("click", () => loadProject(button.dataset.projectId));
+  });
+}
+
+async function loadProject(projectId) {
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`);
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || "Could not open project.");
+    fillProjectForm(body.project);
+    projectMessage.textContent = `Opened ${body.project.name}.`;
+    await loadProjects(projectId);
+  } catch (error) {
+    projectMessage.textContent = error.message;
+  }
+}
+
+function fillProjectForm(project) {
+  setField("project-name", project.name);
+  setField("product-name", project.input?.productName);
+  setField("market", project.input?.market);
+  setField("audience", project.input?.audience);
+  setField("visual-style", project.input?.visualStyle);
+  setField("reference-image-path", project.input?.referenceImage);
+  setField("notes", project.input?.notes);
+}
+
+function setField(id, value) {
+  const field = document.querySelector(`#${id}`);
+  if (field) field.value = value || "";
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+}

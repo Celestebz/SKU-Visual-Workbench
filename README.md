@@ -36,6 +36,15 @@ curl http://127.0.0.1:4173/api/auth/status
 
 `npm run api` 也可启动同一个本地服务；保留这个别名是为了后续前端/后端调试时语义更清楚。
 
+工作台现在支持本地项目历史：
+
+- 在左侧填写 SKU 信息和参考图路径
+- 点击 `Save local project`
+- 项目会保存到本机 `projects/` 目录
+- 右侧 `Local project history` 可以重新打开历史项目
+
+`projects/` 已加入 `.gitignore`，不会上传到 GitHub。
+
 生成真实发布包：
 
 ```bash

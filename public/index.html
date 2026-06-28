@@ -29,35 +29,52 @@
             <h2 id="input-title">SKU setup</h2>
           </div>
 
+          <form id="project-form">
+          <label>
+            Project name
+            <input id="project-name" name="name" type="text" value="MSC12 Elite Instagram Pack" />
+          </label>
+
           <label>
             Product name
-            <input type="text" value="MSC12 Elite Electric Guitar" />
+            <input id="product-name" name="productName" type="text" value="MSC12 Elite Electric Guitar" required />
           </label>
 
           <label>
             Platform
-            <select>
+            <select id="platform" name="platform">
               <option>Instagram · 4:5 portrait</option>
             </select>
           </label>
 
           <label>
             Market
-            <input type="text" value="US / Europe" />
+            <input id="market" name="market" type="text" value="US / Europe" />
           </label>
 
           <label>
             Audience
-            <textarea rows="3">Beginner electric guitar players who want a stylish, approachable first instrument.</textarea>
+            <textarea id="audience" name="audience" rows="3">Beginner electric guitar players who want a stylish, approachable first instrument.</textarea>
           </label>
 
           <label>
             Visual direction
-            <textarea rows="4">Premium, fresh, lifestyle scene, beginner-friendly, not a catalog render.</textarea>
+            <textarea id="visual-style" name="visualStyle" rows="4">Premium, fresh, lifestyle scene, beginner-friendly, not a catalog render.</textarea>
           </label>
 
-          <button class="primary-button" type="button" disabled>Generate prompt plan</button>
-          <p class="hint">Project creation and prompt planning land in the next slices. This shell is wired to auth status today.</p>
+          <label>
+            Reference image path
+            <input id="reference-image-path" name="referenceImagePath" type="text" placeholder="/Users/you/Pictures/product.png" />
+          </label>
+
+          <label>
+            Notes
+            <textarea id="notes" name="notes" rows="3">Pink-to-black gradient, black pickguard, silver hardware.</textarea>
+          </label>
+
+          <button class="primary-button" id="save-project" type="submit">Save local project</button>
+          </form>
+          <p class="hint" id="project-message">Prompt planning lands in the next slice. This step saves and restores local SKU project history.</p>
         </section>
 
         <section class="panel planner-panel" aria-labelledby="planner-title">
@@ -99,6 +116,13 @@
           <div class="auth-guidance" id="auth-guidance">
             <h3>Preparing setup guidance...</h3>
             <p>The app will show detailed Bailian setup steps here if this computer is not logged in.</p>
+          </div>
+
+          <div class="project-history">
+            <h3>Local project history</h3>
+            <div id="project-list" class="project-list">
+              <p class="empty-state">No projects loaded yet.</p>
+            </div>
           </div>
 
           <div class="safety-note">
